@@ -44,3 +44,8 @@ class QRGenerationError(AppException):
     message = "Failed to generate QR image"
     code = "QR_GENERATION_FAILED"
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+class CustomerNotFoundError(NotFoundError):
+    message = "Customer not found"
+    code = "CUSTOMER_NOT_FOUND"
