@@ -2,11 +2,16 @@ import random
 import string
 import uuid
 
-from app.exceptions import ProductNotFoundError
+import httpx
+
+from app.config import settings
+from app.exceptions import ProductNotFoundError, QRGenerationError
 from app.models.product import Product
 from app.repositories.product_repository import ProductRepository
 from app.schemas.product import ProductCreateRequest, ProductUpdateRequest
 from app.services.base import BaseService
+from app.utils.cloudinary_client import delete_image, upload_image
+from app.utils.qr import embed_qr
 
 
 def _generate_fallback_id(length: int = 8) -> str:
@@ -55,5 +60,40 @@ class ProductService(BaseService):
         product = await self.product_repo.get_by_id(product_id)
         if not product:
             raise ProductNotFoundError()
+
+        urls_to_delete = [product.original_image_url]
+        if product.qr_image_url:
+            urls_to_delete.append(product.qr_image_url)
+
         product.deleted_at = utc_now()
         await self.product_repo.update(product)
+
+        for url in urls_to_delete:
+            await delete_image(url)
+
+    async def generate_qr(self, product_id: uuid.UUID) -> Product:
+        product = await self.product_repo.get_by_id(product_id)
+        if not product:
+            raise ProductNotFoundError()
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(product.original_image_url)
+                response.raise_for_status()
+            image_bytes = response.content
+
+            qr_bytes = embed_qr(
+                image_bytes,
+                payload=str(product.id),
+                corner=settings.qr_corner,
+                size_fraction=settings.qr_size_fraction,
+                padding=settings.qr_padding,
+            )
+
+            qr_url = await upload_image(qr_bytes, public_id=f"products/qr/{product.id}")
+        except Exception as exc:
+            raise QRGenerationError() from exc
+
+        product.qr_image_url = qr_url
+        product.qr_payload = str(product.id)
+        return await self.product_repo.update(product)

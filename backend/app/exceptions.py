@@ -38,3 +38,9 @@ class ProductInactiveError(AppException):
     message = "Product is not active"
     code = "PRODUCT_INACTIVE"
     status_code = status.HTTP_400_BAD_REQUEST
+
+
+class QRGenerationError(AppException):
+    message = "Failed to generate QR image"
+    code = "QR_GENERATION_FAILED"
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
