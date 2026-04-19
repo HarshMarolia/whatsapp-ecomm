@@ -11,6 +11,7 @@
 | 3 | Cart reset strategy | Option B — hard delete expired carts + cart_items via cron |
 | 4 | Admin/operator auth | Option B — Clerk JWT |
 | 5 | Image storage | Cloudinary — URLs stored in DB, assets hosted on Cloudinary |
+| 6 | Customer address storage | Option A — `delivery_address JSONB NULL` on `customers` table as a last-used cache; immutable snapshot still on `orders.delivery_address` |
 
 ---
 
@@ -48,10 +49,15 @@
 | id | UUID PK | |
 | whatsapp_number | VARCHAR UNIQUE | E.164 format e.g. +919876543210 |
 | name | VARCHAR NULL | populated if WhatsApp profile provides it |
+| delivery_address | JSONB NULL | `{ name, line1, line2, city, pincode, phone }` — last-used address cache; pre-filled on next checkout |
 | created_at | TIMESTAMPTZ | |
 | updated_at | TIMESTAMPTZ | |
 
 **Index:** `ix_customers_whatsapp_number`
+
+**Notes:**
+- `delivery_address` is a convenience cache overwritten on each checkout — not a history
+- The authoritative snapshot lives on `orders.delivery_address` (immutable at order time)
 
 ---
 
