@@ -71,3 +71,19 @@ class ProductResponse(BaseModel):
     qr_image_url: str | None
     qr_payload: str | None
     fallback_product_id: str
+
+
+class UploadSignatureResponse(BaseModel):
+    cloud_name: str
+    api_key: str
+    timestamp: int
+    signature: str
+    folder: str
+
+
+class GenerateQRResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    qr_image_url: str
+    qr_payload: str

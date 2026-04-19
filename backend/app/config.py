@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     cloudinary_api_key: str = ""
     cloudinary_api_secret: str = ""
 
+    qr_corner: str = "bottom-right"
+    qr_size_fraction: float = 0.20
+    qr_padding: int = 20
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
