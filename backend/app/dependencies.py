@@ -9,6 +9,7 @@ from app.repositories.customer_repository import CustomerRepository
 from app.repositories.product_repository import ProductRepository
 from app.services.customer_service import CustomerService
 from app.services.product_service import ProductService
+from app.services.webhook_service import WebhookService
 
 _security = HTTPBearer()
 _clerk_auth: ClerkAuth | None = None
@@ -47,3 +48,9 @@ def get_customer_service(
     customer_repo: CustomerRepository = Depends(get_customer_repository),
 ) -> CustomerService:
     return CustomerService(customer_repo)
+
+
+def get_webhook_service(
+    customer_repo: CustomerRepository = Depends(get_customer_repository),
+) -> WebhookService:
+    return WebhookService(CustomerService(customer_repo))

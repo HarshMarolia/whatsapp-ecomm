@@ -42,10 +42,20 @@ _nothing currently_
 
 ---
 
+### WhatsApp Webhook
+- [x] `app/utils/whatsapp_client.py` — `send_template_message(to)` via Graph API v18
+- [x] `app/schemas/whatsapp.py` — `WebhookPayload`, `WebhookMessage`, contact/value models
+- [x] `app/services/webhook_service.py` — `handle_message`: get-or-create customer → send template
+- [x] `app/routes/public/whatsapp.py` — `GET /webhooks/whatsapp` (hub verification) + `POST /webhooks/whatsapp` (fire-and-forget message handler)
+- [x] WhatsApp config in `app/config.py` — `whatsapp_access_token`, `phone_number_id`, `verify_token`, `template_name`, `template_language`
+- [x] Auto-create customer on first WhatsApp message
+
+---
+
 ## To Do
 
 ### Customers
-- [ ] Auto-create customer on first WhatsApp message (wire into webhook)
+- [ ] Swap in real WhatsApp template name + language once approved
 
 ### Cart
 - [ ] `carts` + `cart_items` tables + models
