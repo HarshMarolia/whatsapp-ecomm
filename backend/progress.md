@@ -43,10 +43,10 @@ _nothing currently_
 ---
 
 ### WhatsApp Webhook
-- [x] `app/utils/whatsapp_client.py` — `send_template_message(to)` via Graph API v18
-- [x] `app/schemas/whatsapp.py` — `WebhookPayload`, `WebhookMessage`, contact/value models
-- [x] `app/services/webhook_service.py` — `handle_message`: get-or-create customer → send template
-- [x] `app/routes/public/whatsapp.py` — `GET /webhooks/whatsapp` (hub verification) + `POST /webhooks/whatsapp` (fire-and-forget message handler)
+- [x] `app/utils/whatsapp_client.py` — `send_template_message(to)`, `send_text_message(to, text)`, + `download_media(url)` via Graph API v18
+- [x] `app/schemas/whatsapp.py` — `WebhookPayload`, `WebhookMessage`, contact/value/status models
+- [x] `app/services/webhook_service.py` — `handle_message`: get-or-create customer, decode QR from image in-memory, lookup product, send product details text reply
+- [x] `app/routes/public/whatsapp.py` — `GET /webhooks/whatsapp` (hub verification) + `POST /webhooks/whatsapp` (graceful parse, status events ignored)
 - [x] WhatsApp config in `app/config.py` — `whatsapp_access_token`, `phone_number_id`, `verify_token`, `template_name`, `template_language`
 - [x] Auto-create customer on first WhatsApp message
 
@@ -54,8 +54,9 @@ _nothing currently_
 
 ## To Do
 
-### Customers
-- [ ] Swap in real WhatsApp template name + language once approved
+### WhatsApp Webhook
+- [ ] Swap in real WhatsApp template name + language once Meta-approved template is ready
+- [ ] Conversational flow: cart → checkout → order confirmation
 
 ### Cart
 - [ ] `carts` + `cart_items` tables + models
@@ -67,12 +68,6 @@ _nothing currently_
 - [ ] `orders` + `order_items` tables + models
 - [ ] Order service: create from cart, confirm
 - [ ] COD-only checkout flow
-
-### WhatsApp Webhook
-- [ ] Webhook endpoint (public) for incoming WhatsApp messages
-- [ ] QR detection + decoding from received images
-- [ ] Conversational flow: product display → cart → checkout → order confirmation
-- [ ] WhatsApp Cloud API integration (send messages)
 
 ### Public Routes
 - [ ] `GET /products/{id}` — public product lookup by UUID (for bot)

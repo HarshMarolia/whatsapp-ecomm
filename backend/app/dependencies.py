@@ -52,5 +52,6 @@ def get_customer_service(
 
 def get_webhook_service(
     customer_repo: CustomerRepository = Depends(get_customer_repository),
+    product_repo: ProductRepository = Depends(get_product_repository),
 ) -> WebhookService:
-    return WebhookService(CustomerService(customer_repo))
+    return WebhookService(CustomerService(customer_repo), ProductService(product_repo))
