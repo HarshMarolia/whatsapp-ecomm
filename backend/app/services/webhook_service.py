@@ -29,6 +29,31 @@ class WebhookService(BaseService):
             CustomerCreateRequest(whatsapp_number=sender_number, name=sender_name)
         )
 
+        import re
+
+        # Handle text message that matches the wa.me pre-filled text or directly typing the ID
+        if message.type == "text" and message.text:
+            text_body = message.text.body
+            match = re.search(r'\[ID:\s*([A-Z0-9]+)\]', text_body)
+            if match:
+                fallback_id = match.group(1)
+                product = await self.product_service.product_repo.get_by_fallback_id(fallback_id)
+                if not product:
+                    await whatsapp_client.send_text_message(to=sender_number, text="Sorry, we couldn't find a product matching this code.")
+                    return
+                
+                variant_info = f"\n🏷️ Variant: {product.variant}" if product.variant else ""
+                message_text = (
+                    f"📦 *Product Found: {product.name}*\n"
+                    f"💰 Price: ₹{product.price}{variant_info}\n"
+                    f"📦 Available: {product.inventory} in stock"
+                )
+                buttons = [
+                    {"id": f"add_to_cart_{product.id}", "title": "Add to Cart"}
+                ]
+                await whatsapp_client.send_interactive_buttons(to=sender_number, text=message_text, buttons=buttons)
+                return
+
         if message.type == "text" and message.text and customer.conversation_state == "AWAITING_ADDRESS":
             address_text = message.text.body
             
@@ -147,10 +172,22 @@ class WebhookService(BaseService):
                     
                     if decoded_qr:
                         print(f"Decoded QR Code: {decoded_qr}")
-                        try:
-                            product_id = uuid.UUID(decoded_qr)
-                            product = await self.product_service.get_product(product_id)
+                        import urllib.parse
+                        decoded_str = urllib.parse.unquote(decoded_qr)
+                        match = re.search(r'\[ID:\s*([A-Z0-9]+)\]', decoded_str)
+                        
+                        if match:
+                            fallback_id = match.group(1)
+                            product = await self.product_service.product_repo.get_by_fallback_id(fallback_id)
                             
+                            if not product:
+                                print(f"Product not found for fallback ID: {fallback_id}")
+                                await whatsapp_client.send_text_message(
+                                    to=sender_number, 
+                                    text="Sorry, we couldn't find a product matching this QR code."
+                                )
+                                return
+                                
                             # Send product details back
                             variant_info = f"\n🏷️ Variant: {product.variant}" if product.variant else ""
                             message_text = (
@@ -162,20 +199,12 @@ class WebhookService(BaseService):
                                 {"id": f"add_to_cart_{product.id}", "title": "Add to Cart"}
                             ]
                             await whatsapp_client.send_interactive_buttons(to=sender_number, text=message_text, buttons=buttons)
-                            return  # Exit after sending the product response
-                            
-                        except ValueError:
-                            print(f"Invalid UUID from QR: {decoded_qr}")
-                            await whatsapp_client.send_text_message(
-                                to=sender_number, 
-                                text=f"We found a QR code, but it doesn't seem to be a valid product code."
-                            )
                             return
-                        except ProductNotFoundError:
-                            print(f"Product not found for QR: {decoded_qr}")
+                        else:
+                            print(f"Could not find ID in QR: {decoded_qr}")
                             await whatsapp_client.send_text_message(
                                 to=sender_number, 
-                                text=f"Sorry, we couldn't find a product matching this QR code."
+                                text="We found a QR code, but it doesn't seem to be a valid product code."
                             )
                             return
                     else:

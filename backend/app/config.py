@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     whatsapp_verify_token: str = ""
     whatsapp_template_name: str = "hello_world"
     whatsapp_template_language: str = "en_US"
+    whatsapp_wa_me_link: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
