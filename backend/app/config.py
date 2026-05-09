@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     qr_size_fraction: float = 0.20
     qr_padding: int = 20
 
+    whatsapp_access_token: str = ""
+    whatsapp_phone_number_id: str = ""
+    whatsapp_verify_token: str = ""
+    whatsapp_template_name: str = "hello_world"
+    whatsapp_template_language: str = "en_US"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
