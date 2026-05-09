@@ -23,6 +23,16 @@ class _Contact(BaseModel):
     wa_id: str
 
 
+class _ButtonReply(BaseModel):
+    id: str
+    title: str
+
+
+class _InteractiveBody(BaseModel):
+    type: str
+    button_reply: _ButtonReply | None = None
+
+
 class WebhookMessage(BaseModel):
     id: str
     from_: str = Field(alias="from")
@@ -30,6 +40,7 @@ class WebhookMessage(BaseModel):
     type: str
     text: _TextBody | None = None
     image: _ImageBody | None = None
+    interactive: _InteractiveBody | None = None
 
     model_config = {"populate_by_name": True}
 
