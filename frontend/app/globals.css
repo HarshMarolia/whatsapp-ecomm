@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* ========================================
+   WhatsApp Commerce — Design Tokens
+   Dark-mode first, class-based toggle
+   ======================================== */
+
+:root {
+  /* --- Backgrounds --- */
+  --color-bg-primary: #0a0a0c;
+  --color-bg-secondary: #111114;
+  --color-bg-tertiary: #1a1a1f;
+  --color-bg-elevated: #1e1e24;
+  --color-bg-hover: #25252d;
+  --color-bg-input: #16161a;
+
+  /* --- Sidebar --- */
+  --color-sidebar-bg: #08080a;
+  --color-sidebar-hover: #18181c;
+  --color-sidebar-active: #12201a;
+
+  /* --- Text --- */
+  --color-text-primary: #f0f0f3;
+  --color-text-secondary: #9a9aab;
+  --color-text-tertiary: #5a5a6e;
+  --color-text-inverse: #0a0a0c;
+
+  /* --- Borders --- */
+  --color-border: #222230;
+  --color-border-subtle: #1a1a26;
+  --color-border-hover: #333344;
+
+  /* --- Accent (WhatsApp Green) --- */
+  --color-accent: #25d366;
+  --color-accent-hover: #1fbe5a;
+  --color-accent-muted: rgba(37, 211, 102, 0.12);
+  --color-accent-text: #2ee873;
+
+  /* --- Status colours --- */
+  --color-success: #25d366;
+  --color-success-muted: rgba(37, 211, 102, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-muted: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.12);
+  --color-info: #3b82f6;
+  --color-info-muted: rgba(59, 130, 246, 0.12);
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(37, 211, 102, 0.15);
+
+  /* --- Glass --- */
+  --glass-bg: rgba(18, 18, 24, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  /* --- Misc --- */
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-focus-ring: rgba(37, 211, 102, 0.5);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+  --header-height: 64px;
+}
+
+/* --- Light mode overrides --- */
+.light {
+  --color-bg-primary: #f8f9fb;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f0f1f5;
+  --color-bg-elevated: #ffffff;
+  --color-bg-hover: #e8e9ef;
+  --color-bg-input: #ffffff;
+
+  --color-sidebar-bg: #ffffff;
+  --color-sidebar-hover: #f0f1f5;
+  --color-sidebar-active: #e6f7ed;
+
+  --color-text-primary: #0f0f12;
+  --color-text-secondary: #5c5c70;
+  --color-text-tertiary: #9a9aab;
+  --color-text-inverse: #f0f0f3;
+
+  --color-border: #e0e0ea;
+  --color-border-subtle: #eaeaf0;
+  --color-border-hover: #c8c8d6;
+
+  --color-accent: #25d366;
+  --color-accent-hover: #1fbe5a;
+  --color-accent-muted: rgba(37, 211, 102, 0.1);
+  --color-accent-text: #128c3e;
+
+  --color-success-muted: rgba(37, 211, 102, 0.1);
+  --color-warning-muted: rgba(245, 158, 11, 0.1);
+  --color-danger-muted: rgba(239, 68, 68, 0.08);
+  --color-info-muted: rgba(59, 130, 246, 0.08);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 20px rgba(37, 211, 102, 0.1);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+
+  --color-overlay: rgba(0, 0, 0, 0.3);
+}
+
+/* --- Tailwind v4 theme mapping --- */
+@theme inline {
+  --color-background: var(--color-bg-primary);
+  --color-foreground: var(--color-text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* --- Base styles --- */
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* --- Animations --- */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(100%); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out both;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.3s ease-in both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out both;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-tertiary) 25%,
+    var(--color-bg-hover) 50%,
+    var(--color-bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-spin {
+  animation: spin 0.6s linear infinite;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
