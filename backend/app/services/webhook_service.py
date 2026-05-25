@@ -43,15 +43,18 @@ class WebhookService(BaseService):
                     return
                 
                 variant_info = f"\n🏷️ Variant: {product.variant}" if product.variant else ""
+                stock_line = f"📦 Available: {product.inventory} in stock" if product.inventory > 0 else "📦 Not Available: Out of Stock"
                 message_text = (
                     f"📦 *Product Found: {product.name}*\n"
                     f"💰 Price: ₹{product.price}{variant_info}\n"
-                    f"📦 Available: {product.inventory} in stock"
+                    f"{stock_line}"
                 )
-                buttons = [
-                    {"id": f"add_to_cart_{product.id}", "title": "Add to Cart"}
-                ]
-                await whatsapp_client.send_interactive_buttons(to=sender_number, text=message_text, buttons=buttons)
+                
+                if product.inventory > 0:
+                    buttons = [{"id": f"add_to_cart_{product.id}", "title": "Add to Cart"}]
+                    await whatsapp_client.send_interactive_buttons(to=sender_number, text=message_text, buttons=buttons)
+                else:
+                    await whatsapp_client.send_text_message(to=sender_number, text=message_text)
                 return
 
         if message.type == "text" and message.text and customer.conversation_state == "AWAITING_ADDRESS":
@@ -159,11 +162,12 @@ class WebhookService(BaseService):
                 img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                 
                 if img is not None:
-                    # Preprocessing for better QR detection
-                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-                    
-                    decoded_objects = decode(blur)
+                    # Try decoding the original image first
+                    decoded_objects = decode(img)
+                    if not decoded_objects:
+                        # Fallback to grayscale if original fails
+                        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                        decoded_objects = decode(gray)
                     
                     decoded_qr = None
                     for obj in decoded_objects:
@@ -190,15 +194,18 @@ class WebhookService(BaseService):
                                 
                             # Send product details back
                             variant_info = f"\n🏷️ Variant: {product.variant}" if product.variant else ""
+                            stock_line = f"📦 Available: {product.inventory} in stock" if product.inventory > 0 else "📦 Not Available: Out of Stock"
                             message_text = (
                                 f"📦 *Product Found: {product.name}*\n"
                                 f"💰 Price: ₹{product.price}{variant_info}\n"
-                                f"📦 Available: {product.inventory} in stock"
+                                f"{stock_line}"
                             )
-                            buttons = [
-                                {"id": f"add_to_cart_{product.id}", "title": "Add to Cart"}
-                            ]
-                            await whatsapp_client.send_interactive_buttons(to=sender_number, text=message_text, buttons=buttons)
+                            
+                            if product.inventory > 0:
+                                buttons = [{"id": f"add_to_cart_{product.id}", "title": "Add to Cart"}]
+                                await whatsapp_client.send_interactive_buttons(to=sender_number, text=message_text, buttons=buttons)
+                            else:
+                                await whatsapp_client.send_text_message(to=sender_number, text=message_text)
                             return
                         else:
                             print(f"Could not find ID in QR: {decoded_qr}")
