@@ -37,3 +37,17 @@ class CustomerService(BaseService):
             setattr(customer, field, value)
 
         return await self.customer_repo.update(customer)
+
+    async def update_conversation_state(self, customer_id: uuid.UUID, state: str | None) -> Customer:
+        customer = await self.customer_repo.get_by_id(customer_id)
+        if not customer:
+            raise CustomerNotFoundError()
+        customer.conversation_state = state
+        return await self.customer_repo.update(customer)
+
+    async def update_delivery_address_text(self, customer_id: uuid.UUID, address_text: str) -> Customer:
+        customer = await self.customer_repo.get_by_id(customer_id)
+        if not customer:
+            raise CustomerNotFoundError()
+        customer.delivery_address = {"text": address_text}
+        return await self.customer_repo.update(customer)

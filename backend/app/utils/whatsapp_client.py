@@ -55,6 +55,42 @@ async def send_text_message(to: str, text: str) -> None:
         response.raise_for_status()
 
 
+async def send_interactive_buttons(to: str, text: str, buttons: list[dict]) -> None:
+    """Sends an interactive message with buttons."""
+    url = f"{_GRAPH_API_URL}/{settings.whatsapp_phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {settings.whatsapp_access_token}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": to.lstrip("+"),
+        "type": "interactive",
+        "interactive": {
+            "type": "button",
+            "body": {"text": text},
+            "action": {
+                "buttons": [
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": str(btn["id"]),
+                            "title": str(btn["title"])
+                        }
+                    } for btn in buttons
+                ]
+            }
+        }
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, headers=headers, json=payload)
+        if not response.is_success:
+            logger.error(
+                "WhatsApp API error %s: %s", response.status_code, response.text
+            )
+        response.raise_for_status()
+
+
 async def download_media(url: str) -> bytes:
     """Downloads media from WhatsApp Cloud API using the access token."""
     headers = {

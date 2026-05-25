@@ -82,9 +82,14 @@ class ProductService(BaseService):
                 response.raise_for_status()
             image_bytes = response.content
 
+            import urllib.parse
+            payload_text = f"I want to buy {product.name} [ID: {product.fallback_product_id}]"
+            encoded_text = urllib.parse.quote(payload_text)
+            payload_url = f"{settings.whatsapp_wa_me_link}?text={encoded_text}"
+
             qr_bytes = embed_qr(
                 image_bytes,
-                payload=str(product.id),
+                payload=payload_url,
                 corner=settings.qr_corner,
                 size_fraction=settings.qr_size_fraction,
                 padding=settings.qr_padding,
@@ -95,5 +100,5 @@ class ProductService(BaseService):
             raise QRGenerationError() from exc
 
         product.qr_image_url = qr_url
-        product.qr_payload = str(product.id)
+        product.qr_payload = payload_url
         return await self.product_repo.update(product)
