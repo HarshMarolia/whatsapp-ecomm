@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from app.database import async_session_factory
 from app.models.cart import Cart, CartItem
 from app.models.product import Product
+from app.exceptions import ProductNotFoundError, InsufficientInventoryError
 
 
 class CartService:
@@ -50,6 +51,16 @@ class CartService:
             
             # Check if product is already in cart
             existing_item = next((item for item in cart.items if item.product_id == product_id), None)
+            
+            stmt = select(Product).where(Product.id == product_id)
+            result = await session.execute(stmt)
+            product = result.scalar_one_or_none()
+            if not product:
+                raise ProductNotFoundError()
+            
+            new_quantity = existing_item.quantity + 1 if existing_item else 1
+            if new_quantity > product.inventory:
+                raise InsufficientInventoryError(f"Sorry, you can't add more of '{product.name}' to your cart. Only {product.inventory} available.")
             
             if existing_item:
                 existing_item.quantity += 1

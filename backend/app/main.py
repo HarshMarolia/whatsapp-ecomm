@@ -11,6 +11,7 @@ from app.database import engine
 from app.exceptions import AppException
 from app.routes.health import router as health_router
 from app.routes.authenticated.customers import router as customers_router
+from app.routes.authenticated.orders import router as orders_router
 from app.routes.authenticated.products import router as products_router
 from app.routes.public.whatsapp import router as whatsapp_router
 
@@ -55,4 +56,5 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 app.include_router(health_router)
 app.include_router(products_router, prefix=settings.api_prefix)
 app.include_router(customers_router, prefix=settings.api_prefix)
+app.include_router(orders_router, prefix=settings.api_prefix)
 app.include_router(whatsapp_router)
