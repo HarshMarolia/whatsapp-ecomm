@@ -49,3 +49,9 @@ class QRGenerationError(AppException):
 class CustomerNotFoundError(NotFoundError):
     message = "Customer not found"
     code = "CUSTOMER_NOT_FOUND"
+
+
+class InsufficientInventoryError(AppException):
+    message = "Not enough inventory available"
+    code = "INSUFFICIENT_INVENTORY"
+    status_code = status.HTTP_400_BAD_REQUEST

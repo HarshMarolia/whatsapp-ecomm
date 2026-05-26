@@ -7,6 +7,7 @@ from app.database import async_session_factory
 from app.models.cart import Cart, CartItem
 from app.models.order import Order, OrderItem
 from app.services.cart_service import CartService
+from app.exceptions import InsufficientInventoryError
 
 
 class OrderService:
@@ -38,6 +39,9 @@ class OrderService:
 
             # Create Order Items
             for item in cart.items:
+                if item.quantity > item.product.inventory:
+                    raise InsufficientInventoryError(f"Sorry, we only have {item.product.inventory} of '{item.product.name}' available. Please reduce the quantity in your cart.")
+                
                 order_item = OrderItem(
                     order_id=order.id,
                     product_id=item.product_id,
