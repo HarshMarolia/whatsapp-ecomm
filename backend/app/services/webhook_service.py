@@ -42,8 +42,12 @@ class WebhookService(BaseService):
                     await whatsapp_client.send_text_message(to=sender_number, text="Sorry, we couldn't find a product matching this code.")
                     return
                 
+                if not product.is_active:
+                    await whatsapp_client.send_text_message(to=sender_number, text="Sorry, this product is unavailable for now.")
+                    return
+                
                 variant_info = f"\n🏷️ Variant: {product.variant}" if product.variant else ""
-                stock_line = f"📦 Available: {product.inventory} in stock" if product.inventory > 0 else "📦 Not Available: Out of Stock"
+                stock_line = "📦 Available: In Stock" if product.inventory > 0 else "📦 Not Available: Out of Stock"
                 message_text = (
                     f"📦 *Product Found: {product.name}*\n"
                     f"💰 Price: ₹{product.price}{variant_info}\n"
@@ -191,10 +195,17 @@ class WebhookService(BaseService):
                                     text="Sorry, we couldn't find a product matching this QR code."
                                 )
                                 return
+                            
+                            if not product.is_active:
+                                await whatsapp_client.send_text_message(
+                                    to=sender_number, 
+                                    text="Sorry, this product is unavailable for now."
+                                )
+                                return
                                 
                             # Send product details back
                             variant_info = f"\n🏷️ Variant: {product.variant}" if product.variant else ""
-                            stock_line = f"📦 Available: {product.inventory} in stock" if product.inventory > 0 else "📦 Not Available: Out of Stock"
+                            stock_line = "📦 Available: In Stock" if product.inventory > 0 else "📦 Not Available: Out of Stock"
                             message_text = (
                                 f"📦 *Product Found: {product.name}*\n"
                                 f"💰 Price: ₹{product.price}{variant_info}\n"
