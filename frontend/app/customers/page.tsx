@@ -98,6 +98,8 @@ export default function CustomersPage() {
                     <td className="px-4 py-3 hidden sm:table-cell">
                       {customer.delivery_address && customer.delivery_address.city ? (
                         <span className="text-sm truncate max-w-xs block">{customer.delivery_address.city}, {customer.delivery_address.pincode}</span>
+                      ) : customer.delivery_address && customer.delivery_address.text ? (
+                        <span className="text-sm truncate max-w-xs block" title={customer.delivery_address.text}>{customer.delivery_address.text}</span>
                       ) : (
                         <span className="text-sm text-[var(--color-text-secondary)]">No address</span>
                       )}
@@ -110,9 +112,19 @@ export default function CustomersPage() {
                           <div>
                             <h4 className="text-xs font-semibold uppercase text-[var(--color-text-secondary)] mb-2">Delivery Details</h4>
                             {customer.delivery_address ? (
-                              <pre className="text-sm font-mono bg-[var(--color-bg-primary)] p-3 rounded-md text-[var(--color-text-primary)] border border-[var(--color-border-subtle)] overflow-auto max-w-2xl">
-                                {JSON.stringify(customer.delivery_address, null, 2)}
-                              </pre>
+                              <div className="text-sm bg-[var(--color-bg-primary)] p-4 rounded-md text-[var(--color-text-primary)] border border-[var(--color-border-subtle)] max-w-2xl space-y-1">
+                                {customer.delivery_address.text ? (
+                                  <p>{customer.delivery_address.text}</p>
+                                ) : (
+                                  <>
+                                    <p className="font-medium">{customer.delivery_address.name}</p>
+                                    <p>{customer.delivery_address.line1}</p>
+                                    {customer.delivery_address.line2 && <p>{customer.delivery_address.line2}</p>}
+                                    <p>{customer.delivery_address.city} - {customer.delivery_address.pincode}</p>
+                                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">Phone: {customer.delivery_address.phone}</p>
+                                  </>
+                                )}
+                              </div>
                             ) : (
                               <p className="text-sm text-[var(--color-text-tertiary)]">Customer has not provided a delivery address yet.</p>
                             )}

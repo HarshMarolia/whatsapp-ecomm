@@ -82,6 +82,7 @@ export interface CustomerUpdateRequest {
 export interface OrderItem {
   id: string;
   product_id: string;
+  product_name?: string;
   quantity: number;
   price_at_purchase: number;
 }
@@ -89,6 +90,8 @@ export interface OrderItem {
 export interface Order {
   id: string;
   customer_id: string;
+  customer_name?: string | null;
+  customer?: Customer | null;
   total_amount: number;
   status: string;
   items: OrderItem[];

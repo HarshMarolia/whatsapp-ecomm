@@ -11,6 +11,8 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
   // fallback if toast doesn't export correctly
   const toast = {
@@ -34,6 +36,7 @@ export default function OrdersPage() {
   useEffect(() => {
     fetchOrders(activeTab);
   }, [activeTab]);
+
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
@@ -77,6 +80,51 @@ export default function OrdersPage() {
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const filteredAndSortedOrders = React.useMemo(() => {
+    let result = [...orders];
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(order => {
+        return order.id.toLowerCase().includes(q) ||
+               order.customer_id.toLowerCase().includes(q) ||
+               (order.customer_name && order.customer_name.toLowerCase().includes(q)) ||
+               order.total_amount.toString().includes(q) ||
+               formatDate(order.created_at).toLowerCase().includes(q);
+      });
+    }
+
+    if (sortConfig !== null) {
+      result.sort((a, b) => {
+        if (sortConfig.key === 'created_at') {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          if (dateA < dateB) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (dateA > dateB) return sortConfig.direction === 'asc' ? 1 : -1;
+          return 0;
+        }
+        if (sortConfig.key === 'total_amount') {
+          const amtA = Number(a.total_amount);
+          const amtB = Number(b.total_amount);
+          if (amtA < amtB) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (amtA > amtB) return sortConfig.direction === 'asc' ? 1 : -1;
+          return 0;
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  }, [orders, searchQuery, sortConfig]);
+
   return (
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
@@ -85,6 +133,15 @@ export default function OrdersPage() {
           <span className="bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] text-xs px-2.5 py-1 rounded-full font-medium">
             {orders.length}
           </span>
+        </div>
+        <div className="flex-1 max-w-sm ml-4">
+          <input
+            type="text"
+            placeholder="Search orders..."
+            className="w-full px-4 py-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-full text-sm focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
@@ -110,8 +167,12 @@ export default function OrdersPage() {
             <tr>
               <th className="px-4 py-3">Order ID</th>
               <th className="px-4 py-3 hidden sm:table-cell">Customer</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3 cursor-pointer hover:bg-[var(--color-bg-hover)] select-none" onClick={() => handleSort('created_at')}>
+                Date {sortConfig?.key === 'created_at' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+              </th>
+              <th className="px-4 py-3 cursor-pointer hover:bg-[var(--color-bg-hover)] select-none" onClick={() => handleSort('total_amount')}>
+                Total {sortConfig?.key === 'total_amount' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}
+              </th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
@@ -123,21 +184,28 @@ export default function OrdersPage() {
                   <td colSpan={6} className="px-4 py-4 text-center text-[var(--color-text-tertiary)]">Loading...</td>
                 </tr>
               ))
-            ) : orders.length === 0 ? (
+            ) : filteredAndSortedOrders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
                   No orders found. Orders will appear here when customers complete checkout.
                 </td>
               </tr>
             ) : (
-              orders.map(order => (
+              filteredAndSortedOrders.map(order => (
                 <React.Fragment key={order.id}>
                   <tr 
                     onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                     className="hover:bg-[var(--color-bg-hover)] transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3 font-mono text-sm" title={order.id}>{order.id.substring(0,8)}...</td>
-                    <td className="px-4 py-3 font-mono text-sm hidden sm:table-cell" title={order.customer_id}>{order.customer_id.substring(0,8)}...</td>
+                    <td className="px-4 py-3 text-sm hidden sm:table-cell" title={order.customer_id}>
+                      <div className="font-medium text-[var(--color-text-primary)]">
+                        {order.customer_name || "Unknown"}
+                      </div>
+                      <div className="text-xs text-[var(--color-text-tertiary)] font-mono mt-0.5">
+                        {order.customer_id.substring(0,8)}...
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-sm">{formatDate(order.created_at)}</td>
                     <td className="px-4 py-3 font-medium">₹{order.total_amount}</td>
                     <td className="px-4 py-3">
@@ -158,14 +226,59 @@ export default function OrdersPage() {
                   {expandedId === order.id && (
                     <tr className="bg-[var(--color-bg-tertiary)]">
                       <td colSpan={6} className="px-4 py-4 border-t border-[var(--color-border-subtle)]">
-                        <div className="flex justify-between items-start">
-                          <div className="w-full max-w-3xl">
+                        <div className="flex flex-col gap-6 items-start relative">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setExpandedId(null); }}
+                            className="absolute top-0 right-0 z-10 text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-subtle)]"
+                          >
+                            Close
+                          </button>
+
+                          <div className="w-full">
+                            <h4 className="text-xs font-semibold uppercase text-[var(--color-text-secondary)] mb-3">Customer Details</h4>
+                            <div className="bg-[var(--color-bg-primary)] p-4 rounded border border-[var(--color-border-subtle)] text-sm space-y-3">
+                              {order.customer ? (
+                                <>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <span className="text-[var(--color-text-secondary)]">Name</span>
+                                    <span className="col-span-2 font-medium">{order.customer.name || 'N/A'}</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <span className="text-[var(--color-text-secondary)]">WhatsApp</span>
+                                    <span className="col-span-2 font-medium">{order.customer.whatsapp_number || 'N/A'}</span>
+                                  </div>
+                                  {order.customer.delivery_address && (
+                                    <div className="grid grid-cols-3 gap-2 mt-2 pt-3 border-t border-[var(--color-border-subtle)]">
+                                      <span className="text-[var(--color-text-secondary)]">Address</span>
+                                      <div className="col-span-2 space-y-1">
+                                        {order.customer.delivery_address.text ? (
+                                          <p>{order.customer.delivery_address.text}</p>
+                                        ) : (
+                                          <>
+                                            <p className="font-medium">{order.customer.delivery_address.name}</p>
+                                            <p>{order.customer.delivery_address.line1}</p>
+                                            {order.customer.delivery_address.line2 && <p>{order.customer.delivery_address.line2}</p>}
+                                            <p>{order.customer.delivery_address.city} - {order.customer.delivery_address.pincode}</p>
+                                            <p className="text-xs text-[var(--color-text-secondary)] mt-1">Phone: {order.customer.delivery_address.phone}</p>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="text-[var(--color-text-tertiary)]">Customer details not available.</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="w-full">
                             <h4 className="text-xs font-semibold uppercase text-[var(--color-text-secondary)] mb-3">Order Items ({order.items.length})</h4>
                             <div className="bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-subtle)] overflow-hidden">
                               <table className="w-full text-sm">
                                 <thead className="bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]">
                                   <tr>
-                                    <th className="px-3 py-2 text-left font-medium">Product ID</th>
+                                    <th className="px-3 py-2 text-left font-medium">Product</th>
                                     <th className="px-3 py-2 text-left font-medium">Qty</th>
                                     <th className="px-3 py-2 text-left font-medium">Price</th>
                                     <th className="px-3 py-2 text-left font-medium">Total</th>
@@ -174,7 +287,9 @@ export default function OrdersPage() {
                                 <tbody className="divide-y divide-[var(--color-border-subtle)]">
                                   {order.items.map(item => (
                                     <tr key={item.id}>
-                                      <td className="px-3 py-2 font-mono" title={item.product_id}>{item.product_id.substring(0,12)}...</td>
+                                      <td className="px-3 py-2" title={item.product_id}>
+                                        {item.product_name || `${item.product_id.substring(0,12)}...`}
+                                      </td>
                                       <td className="px-3 py-2">{item.quantity}</td>
                                       <td className="px-3 py-2">₹{item.price_at_purchase}</td>
                                       <td className="px-3 py-2 font-medium">₹{item.quantity * item.price_at_purchase}</td>
@@ -188,12 +303,6 @@ export default function OrdersPage() {
                               </table>
                             </div>
                           </div>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setExpandedId(null); }}
-                            className="ml-4 text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-subtle)]"
-                          >
-                            Close
-                          </button>
                         </div>
                       </td>
                     </tr>
