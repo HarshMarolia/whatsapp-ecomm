@@ -58,6 +58,6 @@ class OrderService:
             await session.commit()
             
             # Fetch created order with items
-            stmt_order = select(Order).options(selectinload(Order.items)).where(Order.id == order.id)
+            stmt_order = select(Order).options(selectinload(Order.items).selectinload(OrderItem.product), selectinload(Order.customer)).where(Order.id == order.id)
             res = await session.execute(stmt_order)
             return res.scalar_one()

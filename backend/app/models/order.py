@@ -27,6 +27,10 @@ class Order(TimestampBase):
         "OrderItem", back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )
 
+    @property
+    def customer_name(self) -> str | None:
+        return self.customer.name if self.customer else None
+
     __table_args__ = (
         Index("ix_orders_customer_id", "customer_id"),
         Index("ix_orders_status", "status"),
@@ -49,5 +53,9 @@ class OrderItem(TimestampBase):
 
     order: Mapped[Order] = relationship("Order", back_populates="items")
     product: Mapped[Product] = relationship("Product")
+
+    @property
+    def product_name(self) -> str | None:
+        return self.product.name if self.product else None
 
     __table_args__ = (Index("ix_order_items_order_id", "order_id"),)
